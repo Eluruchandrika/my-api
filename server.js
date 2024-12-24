@@ -1,10 +1,10 @@
 const express = require("express");
+const cors = require("cors");
 const app = express();
 
-// Middleware to parse JSON data
 app.use(express.json());
+app.use(cors());
 
-// Sample data (this can come from a database)
 let products = [
   {
      id: 1,
@@ -406,12 +406,10 @@ let products = [
 ];
 
 
-// API to fetch all products at the root URL (localhost:3000)
 app.get("/", (req, res) => {
   res.json(products);
 });
 
-// API to fetch a single product by ID
 app.get("/products/:id", (req, res) => {
   const product = products.find((p) => p.id === parseInt(req.params.id));
   if (product) {
@@ -421,19 +419,30 @@ app.get("/products/:id", (req, res) => {
   }
 });
 
-// API to add a new product
+app.get("/products/search/name/:name", (req, res) => {
+  const name = req.params.name.toLowerCase();
+  const filteredProducts = products.filter((p) => p.name.toLowerCase().includes(name));
+  res.json(filteredProducts);
+});
+
+app.get("/products/search/rating/:stars", (req, res) => {
+  const stars = parseFloat(req.params.stars);
+  const filteredProducts = products.filter((p) => p.rating.stars === stars);
+  res.json(filteredProducts);
+});
+
 app.post("/products", (req, res) => {
   const newProduct = {
     id: products.length + 1,
-    product_name: req.body.product_name,
-    price: req.body.price,
-    stock: req.body.stock,
+    name: req.body.name,
+    priceCents: req.body.priceCents,
+    rating: req.body.rating || { stars: 0, count: 0 },
+    image: req.body.image || ""
   };
   products.push(newProduct);
   res.status(201).json(newProduct);
 });
 
-// Start the server
 const PORT = 3000;
 app.listen(PORT, () => {
   console.log(`Server is running on http://localhost:${PORT}`);
